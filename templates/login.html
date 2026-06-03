@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Log In
+{% endblock %}
+
+{% block main %}
+    <div class="login-wrapper">
+        <h1 id="main-title">Musicphile, the place to discover and share your favourite music.</h1>
+        <h3>Please sign in or create an account.</h3>
+        <div class="auth-card">
+            <form action="/login" method="post" id="login-form">
+                <div class="mb-3">
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="username" placeholder="Username" type="text">
+                </div>
+                <div class="mb-3">
+                    <input class="form-control mx-auto w-auto" name="password" placeholder="Password" type="password">
+                </div>
+                <button class="btn btn-primary" type="submit">Log In</button>
+            </form>
+            <p>Don't have an account? <a href="/register">Register here.</a></p>
+        </div>
+{% endblock %}

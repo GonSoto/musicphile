@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block main %}
+    <div class="login-wrapper">
+        <h1 id="main-title">Musicphile, the place to discover and share your favourite music.</h1>
+        <h3>Create an account to get started.</h3>
+        <div class="auth-card">
+            <form action="/register" method="post" id="login-form">
+                <div class="mb-3">
+                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="username" placeholder="Username" type="text">
+                </div>
+                <div class="mb-3">
+                    <input class="form-control mx-auto w-auto" name="password" placeholder="Choose a password" type="password">
+                </div>
+                <div class="mb-3">
+                    <input class="form-control mx-auto w-auto" name="confirm-password" placeholder="Confirm your password" type="password">
+                </div>
+                <button class="btn btn-primary" type="submit">Register</button>
+            </form>
+            <p>Already have an account? <a href="/login">Log in here.</a></p>
+        </div>
+    </div>
+{% endblock %}

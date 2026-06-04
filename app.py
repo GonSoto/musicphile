@@ -1,17 +1,21 @@
-from flask import Flask, redirect, render_template, request, session
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-import sqlite3
-import os
-from werkzeug.security import check_password_hash, generate_password_hash
 from dotenv import load_dotenv
+from flask import Flask, redirect, render_template, request, session
 from helpers import login_required
+import os
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
+import sqlite3
+from werkzeug.security import check_password_hash, generate_password_hash
+
 load_dotenv()
 
 app = Flask(__name__)
 
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
+client_id = os.environ.get("CLIENT_ID")
+client_secret = os.environ.get("CLIENT_SECRET")
 
+sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri="http://localhost:5000/", scope="user-library-read user-top-read user-follow-read user-read-recently-played"))
 @app.route("/")
 @login_required
 def index():

@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session
-from helpers import login_required
+from helpers import login_required, get_spotify_client
 import os
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
@@ -20,6 +20,21 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_secre
 @login_required
 def index():
     return render_template("index.html", user=session["user_id"])
+
+@app.route("/callback")
+@login_required
+def callback():
+    auth_manager = SpotifyOAuth(
+        client_id = client_id,
+        client_secret = client_secret,
+        redirect_uri = "http://127.0.0.1:5000/callback",
+        scope = "user-library-read user-top-read user-follow-read user-read-recently-played",
+        cache_handler=spotipy.cache_handler.FlaskSessionCacheHandler(session)
+    )
+
+    code = request.args.get("code")
+    auth_manager.get_access_token(code)
+    return redirect("/profile")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -71,3 +86,30 @@ def register():
                 conn.close()
                 return render_template("register.html", error="username already exists")
             return redirect("/login")
+
+@app.route("/spotify-login")
+@login_required
+def connect_spotify():
+    auth_manager = SpotifyOAuth(
+        client_id=client_id,
+        client_secret=client_secret,
+        redirect_uri="http://127.0.0.1:5000/callback",
+        scope="user-library-read user-top-read user-follow-read user-read-recently-played",
+        cache_handler=spotipy.cache_handler.FlaskSessionCacheHandler(session)
+    )
+    auth_url = auth_manager.get_authorize_url()
+    return redirect(auth_url)
+
+@app.route("/profile")
+@login_required
+def profile():
+    sp = get_spotify_client()
+    if sp is None:
+        return redirect("/spotify-login")
+    top_artists_result = sp.current_user_top_artists(limit=10, time_range="medium_term")
+    top_artists = top_artists_result["items"]
+
+    top_tracks_result = sp.current_user_top_tracks(limit=10, time_range="medium_term")
+    top_tracks = top_tracks_result["items"]
+
+    return render_template("profile.html", top_artists=top_artists, top_tracks=top_tracks)

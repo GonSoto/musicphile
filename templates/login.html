@@ -9,6 +9,7 @@
         <h1 id="main-title">Musicphile, the place to discover and share your favourite music.</h1>
         <h3>Please sign in or create an account.</h3>
         <div class="auth-card">
+            <p>{{ error }}, {{ user }}/{{ password }}</p>
             <form action="/login" method="post" id="login-form">
                 <div class="mb-3">
                     <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="username" placeholder="Username" type="text">

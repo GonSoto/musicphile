@@ -5,19 +5,17 @@ import sqlite3
 import os
 from werkzeug.security import check_password_hash, generate_password_hash
 from dotenv import load_dotenv
-
+from helpers import login_required
 load_dotenv()
 
 app = Flask(__name__)
 
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
+@login_required
 def index():
-    if "user_id" not in session:
-        return render_template("login.html")
-    else:
-        return render_template("index.html", user=session["user_id"])
+    return render_template("index.html", user=session["user_id"])
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

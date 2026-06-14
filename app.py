@@ -15,7 +15,6 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 client_id = os.environ.get("CLIENT_ID")
 client_secret = os.environ.get("CLIENT_SECRET")
 
-sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri="http://localhost:5000/", scope="user-library-read user-top-read user-follow-read user-read-recently-played"))
 @app.route("/")
 @login_required
 def index():
@@ -58,6 +57,16 @@ def login():
                 return redirect("/")
     return render_template("login.html")
 
+@app.route("/logout")
+def logout():
+    """Log user out"""
+
+    # Forget any user_id
+    session.clear()
+
+    # Redirect user to login form
+    return redirect("/")
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "GET":
@@ -95,7 +104,8 @@ def connect_spotify():
         client_secret=client_secret,
         redirect_uri="http://127.0.0.1:5000/callback",
         scope="user-library-read user-top-read user-follow-read user-read-recently-played",
-        cache_handler=spotipy.cache_handler.FlaskSessionCacheHandler(session)
+        cache_handler=spotipy.cache_handler.FlaskSessionCacheHandler(session),
+        show_dialog=True
     )
     auth_url = auth_manager.get_authorize_url()
     return redirect(auth_url)

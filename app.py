@@ -94,7 +94,7 @@ def register():
             except sqlite3.IntegrityError:
                 conn.close()
                 return render_template("register.html", error="username already exists")
-            return redirect("/login")
+    return redirect("/login")
 
 @app.route("/spotify-login")
 @login_required

@@ -18,6 +18,20 @@ def get_spotify_client():
         scope="user-library-read user-top-read user-follow-read user-read-recently-played",
         cache_handler=spotipy.cache_handler.FlaskSessionCacheHandler(session)
     )
+
+    token = auth_manager.get_cached_token()
+
+    if not token:
+        return None
+
+    if auth_manager.is_token_expired(token):
+        try:
+            auth_manager.refresh_access_token(token["refresh_token"])
+        except Exception as e:
+            if "invalid_grant" in str(e):
+                session.pop("token_info", None)
+                return None
+            raise
     
     if not auth_manager.validate_token(auth_manager.get_cached_token()):
         return None  # user hasn't connected Spotify yet

@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block main %}
+<div class="welcome">
+    <h1>Basic stats.</h1>
+    <div class="stats">
+
+        <div class="app-container">
+        
+        <header class="profile-header">
+            <h2 class="section-title">Recently Played</h2>
+        </header>
+
+        <div class="slider-wrapper">
+            
+            {% for item in recent_tracks %}
+            <div class="slider-card">
+                
+                <div class="artwork-frame">
+                    <img src="{{ item.track.album.images[0].url }}" alt="{{ item.track.name }} Album Art">
+                </div>
+                
+                <div class="track-details">
+                    <h3 class="track-name" title="{{ item.track.name }}">{{ item.track.name }}</h3>
+                    <p class="artist-name" title="{{ item.track.artists[0].name }}">{{ item.track.artists[0].name }}</p>
+                </div>
+                
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No recent tracks found.</p>
+            </div>
+            {% endfor %}
+
+        </div>
+
+    </div>
+    
+        <h3>Top Artists by listening time</h3>
+        <ul>
+            {% for artist in top_artists %}
+            <li>{{ artist.name }}</li>
+            {% endfor %}
+        </ul>
+        <h3>Top Tracks by listens</h3>
+        <ul>
+            {% for track in top_tracks %}
+            <li>{{ track.name }}</li>
+            {% endfor %}
+        </ul>
+        <h3>Top Genres by percentage</h3>
+        <ul>
+            {% for genre in top_genres %}
+            <li>{{ genre.name }} ({{ genre.percentage }}%)</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+<button class="btn btn-primary" type="submit"><a class="nav-link" href="/logout">Log Out</a></button>
+
+<script>
+        const slider = document.getElementById('slider');
+        slider.addEventListener('wheel', (evt) => {
+            evt.preventDefault();
+            slider.scrollLeft += evt.deltaY;
+        });
+    </script>
+{% endblock %}

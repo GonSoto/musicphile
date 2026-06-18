@@ -20,16 +20,43 @@ p {
     color: #d6d6d6;
 }
 
+.app-container {
+    max-width: 90%;
+}
+
+.artwork-frame {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.artist-name {
+    font-size: 0.8rem;
+    color: #a1a1aa;
+}
+
+.artwork-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 .auth-card {
     display: flex;
-    flex-direction: column;  /* Stacks form elements vertically */
-    align-items: center;     /* Centers the inputs/buttons horizontally inside the card */
-    text-align: center;      /* Centers the text inside headings and labels */ 
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
     padding: 2rem;
     background-color: #181818; 
     border-radius: 8px;
     width: 100%;
-    max-width: 400px;        /* Limits how wide the form can get */
+    max-width: 400px;
+}
+
+.empty-state {
+    color: #71717a;
+    font-size: 0.9rem;
 }
 
 .glow {
@@ -53,6 +80,64 @@ p {
     align-items: center;
 }
 
+.profile-header {
+    margin-bottom: 20px;
+}
+
+.profile-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    color: #a1a1aa;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.slider-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;  
+    flex: 0 0 40%;
+    scroll-snap-align: start;
+    background-color: #27272a;
+    border-radius: 12px;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.slider-wrapper {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 12px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #52525b #27272a;
+    -ms-overflow-style: none;
+}
+
+.slider-wrapper::-webkit-scrollbar {
+    height: 6px;
+}
+
+.slider-wrapper::-webkit-scrollbar-track {
+    background: #27272a;
+    border-radius: 10px;
+}
+.slider-wrapper::-webkit-scrollbar-thumb {
+    background: #52525b;
+    border-radius: 10px;
+}
+
 .start-btn {
     display: flex;
     flex-direction: column;
@@ -69,6 +154,36 @@ p {
     margin: 10px;
     cursor: pointer;
     border-radius: 5px;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #37c54f;
+    background-color: #37c54f;
+    align-self: center;
+}
+
+.track-details {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.track-name, .artist-name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #f4f4f5;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track-name {
+    font-size: 0.95rem;
+    font-weight: bold;
+    margin-bottom: 4px;
 }
 
 #login-form {

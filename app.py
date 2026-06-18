@@ -118,8 +118,53 @@ def profile():
         return redirect("/spotify-login")
     top_artists_result = sp.current_user_top_artists(limit=10, time_range="medium_term")
     top_artists = top_artists_result["items"]
-
+    
     top_tracks_result = sp.current_user_top_tracks(limit=10, time_range="medium_term")
     top_tracks = top_tracks_result["items"]
 
-    return render_template("profile.html", top_artists=top_artists, top_tracks=top_tracks)
+    import requests
+    from collections import Counter
+
+    lastfm_api_key = os.environ.get("LASTFM_API_KEY")
+    all_genres = []
+
+    for artist in top_artists:
+        try:
+            response = requests.get("https://ws.audioscrobbler.com/2.0/", params={
+                "method": "artist.getTopTags",
+                "artist": artist["name"],
+                "api_key": lastfm_api_key,
+                "format": "json",
+                "limit": 3  # top 3 tags per artist is enough
+            })
+            data = response.json()
+            tags = data.get("toptags", {}).get("tag", [])
+            for tag in tags:
+                all_genres.append(tag["name"].lower())
+        except Exception:
+            continue  # if one artist fails, skip it and carry on
+
+        genre_counts = Counter(all_genres)
+        total = sum(genre_counts.values())
+        top_genres = [
+            {"name": genre, "percentage": round((count / total) * 100, 1)}
+            for genre, count in genre_counts.most_common(5)
+        ] if total > 0 else []
+    return render_template("profile.html", top_artists=top_artists, top_tracks=top_tracks, top_genres=top_genres)
+'''
+Deprecated code for showing genres with spotipy, now using Last.fm API instead
+    artist_ids = [artist["id"] for artist in top_artists]
+    full_artists = sp.artists(artist_ids)["artists"] # Coge el perfil del artista en base al id
+
+    all_genres = []
+    for artist in full_artists:
+        if artist.get("genres"): # Busca los géneros del artista según el id
+            all_genres.extend(artist["genres"])
+    from collections import Counter
+    genre_counts = Counter(all_genres)
+    total = sum(genre_counts.values())
+    top_genres = [
+        {"name": genre, "percentage": round((count / total) * 100, 1)}
+        for genre, count in genre_counts.most_common(5)
+    ] # Genera los porcentajes de los géneros más escuchados
+'''

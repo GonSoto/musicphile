@@ -144,12 +144,15 @@ def profile():
         except Exception:
             continue  # if one artist fails, skip it and carry on
 
-        genre_counts = Counter(all_genres)
-        total = sum(genre_counts.values())
+        genre_counts = Counter(all_genres) 
+        # total = sum(genre_counts.values()) Prior version that used all genres to calculate percentage instead of only the shown ones.
+
+        top_tag_counts = genre_counts.most_common(10)
+        top_total = sum(count for _, count in top_tag_counts) # Takes each count of the main genres and sums them together
         top_genres = [
-            {"name": genre, "percentage": round((count / total) * 100, 1)}
-            for genre, count in genre_counts.most_common(5)
-        ] if total > 0 else []
+            {"name": genre, "percentage": round((count / top_total) * 100, 1)}
+            for genre, count in top_tag_counts # genre_counts.most_common(10)
+        ] if top_total > 0 else []
     return render_template("profile.html", top_artists=top_artists, top_tracks=top_tracks, top_genres=top_genres)
 '''
 Deprecated code for showing genres with spotipy, now using Last.fm API instead

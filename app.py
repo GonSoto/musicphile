@@ -116,6 +116,7 @@ def profile():
     sp = get_spotify_client()
     if sp is None:
         return redirect("/spotify-login")
+    
     top_artists_result = sp.current_user_top_artists(limit=10, time_range="medium_term")
     top_artists = top_artists_result["items"]
     
@@ -125,7 +126,7 @@ def profile():
     recent_result = sp.current_user_recently_played(limit=5)
     recent_tracks = recent_result["items"]
     
-    import requests
+    import requests as http_requests
     from collections import Counter
 
     lastfm_api_key = os.environ.get("LASTFM_API_KEY")
@@ -133,30 +134,39 @@ def profile():
 
     for artist in top_artists:
         try:
-            response = requests.get("https://ws.audioscrobbler.com/2.0/", params={
+            response = http_requests.get("https://ws.audioscrobbler.com/2.0/", params={
                 "method": "artist.getTopTags",
                 "artist": artist["name"],
                 "api_key": lastfm_api_key,
                 "format": "json",
-                "limit": 3  # top 3 tags per artist is enough
-            }
+                "limit": 5
+            })
             data = response.json()
             tags = data.get("toptags", {}).get("tag", [])
             for tag in tags:
                 all_genres.append(tag["name"].lower())
         except Exception:
-            continue  # if one artist fails, skip it and carry on
+            continue
 
         genre_counts = Counter(all_genres) 
-        # total = sum(genre_counts.values()) Prior version that used all genres to calculate percentage instead of only the shown ones.
 
         top_tag_counts = genre_counts.most_common(10)
         top_total = sum(count for _, count in top_tag_counts) # Takes each count of the main genres and sums them together
         top_genres = [
             {"name": genre, "percentage": round((count / top_total) * 100, 1)}
-            for genre, count in top_tag_counts # genre_counts.most_common(10)
+            for genre, count in top_tag_counts
         ] if top_total > 0 else []
-    return render_template("profile.html", top_artists=top_artists, top_tracks=top_tracks, top_genres=top_genres, recent_tracks=recent_tracks)
+
+    conn = sqlite3.connect("musicphile.db")
+    c = conn.cursor()
+    rows = c.execute("SELECT id, position, title, artist, cover_url FROM top_albums WHERE user_id = ? ORDER BY position", session["user_id"]
+    ).fetchall()
+    conn.close()
+    top_albums = [{"id": r[0], "position": r[1], "title": r[2], "artist": r[3], "cover_url": r[4]} for r in rows]
+
+    return render_template(
+        "profile.html",
+        top_artists=top_artists, top_tracks=top_tracks, top_genres=top_genres, recent_tracks=recent_tracks, top_albums=top_albums)
 
 @app.route("/search_albums")
 @login_required
@@ -186,9 +196,9 @@ def search_albums():
             "cover_url": cover,
             "mbid": album.get("mbid", "")
         })
-return {"results": results}
+    return {"results": results}
 
-@app.route("/top-albums/add", methods=["POST"]")
+@app.route("/top-albums/add", methods=["POST"])
 @login_required
 def add_top_album():
     user_id = session["user_id"]

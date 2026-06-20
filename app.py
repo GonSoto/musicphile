@@ -159,8 +159,7 @@ def profile():
 
     conn = sqlite3.connect("musicphile.db")
     c = conn.cursor()
-    rows = c.execute("SELECT id, position, title, artist, cover_url FROM top_albums WHERE user_id = ? ORDER BY position", session["user_id"]
-    ).fetchall()
+    rows = c.execute("SELECT id, position, title, artist, cover_url FROM top_albums WHERE user_id = ? ORDER BY position", (session["user_id"],)).fetchall()
     conn.close()
     top_albums = [{"id": r[0], "position": r[1], "title": r[2], "artist": r[3], "cover_url": r[4]} for r in rows]
 
@@ -168,7 +167,7 @@ def profile():
         "profile.html",
         top_artists=top_artists, top_tracks=top_tracks, top_genres=top_genres, recent_tracks=recent_tracks, top_albums=top_albums)
 
-@app.route("/search_albums")
+@app.route("/search-albums")
 @login_required
 def search_albums():
     query = request.args.get("q", "").strip()

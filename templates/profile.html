@@ -35,11 +35,37 @@
 
         </div>
     </div>
-    <div>
-        <div>
+    <div class="top-albums-section">
+        <div class="top-albums-header">
             <h3>Top 5 albums</h3>
-            <button class="btn btn-primary" type="submit"><a class="nav-link" href="/profile">Edit</a></button>
+            <button id="edit-btn" onclick="toggleEdit()">Edit</button> <!-- Claude's idea to use JS instead of another template-->
         </div>
+        <div class="albums-list">
+            {% if top_albums %}
+                {% for album in top_albums %}
+                <div class="album-row" id="album-row-{{ album.id }}">
+                    {% if album.cover_url %}
+                    <img src="{{ album.cover_url }}" alt="{{ album.title }}" width="50" height="50">
+                    {% endif %}
+                    <span class="album-position">{{ album.position }}.</span>
+                    <span class="album-title">{{ album.title }}</span>
+                    <span class="album-artist">{{ album.artist }}</span>
+                    <div class="album-controls" style="display:none;">
+                        <button class="move-btn" data-id="{{ album.id }}" data-dir="up">▲</button>
+                        <button class="move-btn" data-id="{{ album.id }}" data-dir="down">▼</button>
+                        <button class="remove-btn" data-id="{{ album.id }}">✕</button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p id="empty-msg">No albums have been selected.</p>
+            {% endif %}
+        </div>
+        <div id="search-area" style="display:none;">
+            <div id="album-count-msg"></div>
+            <input type="text" id="album-search" placeholder="Search for an album..." oninput="searchAlbums(this.value)">
+            <div id="search-results"></div>
+       </div>
     </div>
     <div>
         <h3>Top Artists by listening time</h3>
@@ -64,11 +90,116 @@
 </div>
 <button class="btn btn-primary" type="submit"><a class="nav-link" href="/logout">Log Out</a></button>
 
+<!-- Script for slider for recently played -->
 <script>
-        const slider = document.getElementById('slider');
-        slider.addEventListener('wheel', (evt) => {
-            evt.preventDefault();
-            slider.scrollLeft += evt.deltaY;
+    const slider = document.getElementById('slider');
+    slider.addEventListener('wheel', (evt) => {
+        evt.preventDefault();
+        slider.scrollLeft += evt.deltaY;
+    });
+</script> 
+
+<!-- Script for slider for recently played -->
+ <script>
+    let editMode = false;
+    let searchTimeout = null;
+
+    function toggleEdit() {
+        editMode = !editMode;
+        document.getElementById("edit-btn").textContent = editMode ? "Done" : "Edit";
+        document.getElementById("search-area").style.display = editMode ? "block" : "none";
+
+        // Show/hide controls on each album row
+        document.querySelectorAll(".album-controls").forEach(el => {
+            el.style.display = editMode ? "inline" : "none";
         });
-    </script>
+
+        if (editMode) updateCountMsg();
+    }
+
+    function updateCountMsg() {
+        const count = document.querySelectorAll(".album-row").length;
+        const msg = document.getElementById("album-count-msg");
+        if (count >= 5) {
+            msg.textContent = "You have 5 albums. Remove one to add another.";
+            document.getElementById("album-search").style.display = "none";
+        } else {
+            msg.textContent = `${count}/5 albums selected.`;
+            document.getElementById("album-search").style.display = "block";
+        }
+    }
+
+    function searchAlbums(query) {
+        clearTimeout(searchTimeout);
+        if (query.length < 2) {
+            document.getElementById("search-results").innerHTML = "";
+            return;
+        }
+        // Wait 400ms after user stops typing before calling the API
+        searchTimeout = setTimeout(async () => {
+            const res = await fetch(`/search-albums?q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            renderResults(data.results);
+        }, 400);
+    }
+
+    function renderResults(results) {
+        const container = document.getElementById("search-results");
+        if (!results.length) {
+            container.innerHTML = "<p>No results found.</p>";
+            return;
+        }
+        container.innerHTML = results.map(r => `
+            <div class="search-result-row">
+                ${r.cover_url ? `<img src="${r.cover_url}" width="40" height="40">` : ""}
+                <span>${r.title} — ${r.artist}</span>
+                <button onclick='addAlbum(${JSON.stringify(r)})'>Add</button>
+            </div>
+        `).join("");
+    }
+
+    async function addAlbum(album) {
+        const res = await fetch("/top-albums/add", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(album)
+        });
+        const data = await res.json();
+        if (data.error) {
+            alert(data.error);
+        } else {
+            location.reload();  // simplest way to re-render the updated list
+        }
+    }
+
+    async function removeAlbum(id) {
+        await fetch("/top-albums/remove", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({id})
+        });
+        location.reload();
+    }
+
+    async function moveAlbum(id, direction) {
+        await fetch("/top-albums/reorder", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({id, direction})
+        });
+        location.reload();
+    }
+
+    document.addEventListener("click", async function(e) {
+        if (e.target.classList.contains("move-btn")) {
+            const id = e.target.dataset.id;
+            const direction = e.target.dataset.dir;
+            await moveAlbum(id, direction);
+        }
+        if (e.target.classList.contains("remove-btn")) {
+            const id = e.target.dataset.id;
+            await removeAlbum(id);
+        }
+    });
+ </script>
 {% endblock %}

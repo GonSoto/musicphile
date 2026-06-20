@@ -222,7 +222,6 @@ def remove_top_album():
     conn = sqlite3.connect("musicphile.db")
     c = conn.cursor()
 
-    # Get position of the album being removed
     row = c.execute(
         "SELECT position FROM top_albums WHERE id = ? AND user_id = ?", (album_id, user_id)
     ).fetchone()
@@ -233,10 +232,46 @@ def remove_top_album():
 
     removed_position = row[0]
 
-    # Delete it
     c.execute("DELETE FROM top_albums WHERE id = ? AND user_id = ?", (album_id, user_id))
 
     c.execute("UPDATE top_albums SET position = position - 1 WHERE user_id = ? AND position > ?", (user_id, removed_position))
+
+    conn.commit()
+    conn.close()
+    return {"success": True}
+
+@app.route("/top-albums/reorder", methods=["POST"])
+@login_required
+def reorder_top_album():
+    user_id = session["user_id"]
+    data = request.get_json()
+    album_id = data["id"]
+    direction = data["direction"]
+
+    conn = sqlite3.connect("musicphile.db")
+    c = conn.cursor()
+
+    current = c.execute(
+        "SELECT id, position FROM top_albums WHERE id = ? AND user_id = ?", (album_id, user_id)
+    ).fetchone()
+
+    if not current:
+        conn.close()
+        return {"error": "Album not found"}, 404
+
+    current_pos = current[1]
+    swap_pos = current_pos - 1 if direction == "up" else current_pos + 1
+
+    swap_album = c.execute(
+        "SELECT id FROM top_albums WHERE user_id = ? AND position = ?", (user_id, swap_pos)
+    ).fetchone()
+
+    if not swap_album:
+        conn.close()
+        return {"error": "Can't move further"}, 400
+
+    c.execute("UPDATE top_albums SET position = ? WHERE id = ?", (swap_pos, album_id))
+    c.execute("UPDATE top_albums SET position = ? WHERE id = ?", (current_pos, swap_album[0]))
 
     conn.commit()
     conn.close()

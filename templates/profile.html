@@ -19,16 +19,13 @@
             
             {% for item in recent_tracks %}
             <div class="slider-card">
-                
                 <div class="artwork-frame">
                     <img src="{{ item.track.album.images[0].url }}" alt="{{ item.track.name }} Album Art">
                 </div>
-                
                 <div class="track-details">
                     <h3 class="track-name" title="{{ item.track.name }}">{{ item.track.name }}</h3>
                     <p class="artist-name" title="{{ item.track.artists[0].name }}">{{ item.track.artists[0].name }}</p>
-                </div>
-                
+                </div> 
             </div>
             {% else %}
             <div class="empty-state">
@@ -37,9 +34,14 @@
             {% endfor %}
 
         </div>
-
     </div>
-    
+    <div>
+        <div>
+            <h3>Top 5 albums</h3>
+            <button class="btn btn-primary" type="submit"><a class="nav-link" href="/profile">Edit</a></button>
+        </div>
+    </div>
+    <div>
         <h3>Top Artists by listening time</h3>
         <ul>
             {% for artist in top_artists %}

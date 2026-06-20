@@ -157,20 +157,3 @@ def profile():
             for genre, count in top_tag_counts # genre_counts.most_common(10)
         ] if top_total > 0 else []
     return render_template("profile.html", top_artists=top_artists, top_tracks=top_tracks, top_genres=top_genres, recent_tracks=recent_tracks)
-'''
-Deprecated code for showing genres with spotipy, now using Last.fm API instead
-    artist_ids = [artist["id"] for artist in top_artists]
-    full_artists = sp.artists(artist_ids)["artists"] # Coge el perfil del artista en base al id
-
-    all_genres = []
-    for artist in full_artists:
-        if artist.get("genres"): # Busca los géneros del artista según el id
-            all_genres.extend(artist["genres"])
-    from collections import Counter
-    genre_counts = Counter(all_genres)
-    total = sum(genre_counts.values())
-    top_genres = [
-        {"name": genre, "percentage": round((count / total) * 100, 1)}
-        for genre, count in genre_counts.most_common(5)
-    ] # Genera los porcentajes de los géneros más escuchados
-'''

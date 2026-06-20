@@ -139,7 +139,7 @@ def profile():
                 "api_key": lastfm_api_key,
                 "format": "json",
                 "limit": 3  # top 3 tags per artist is enough
-            })
+            }
             data = response.json()
             tags = data.get("toptags", {}).get("tag", [])
             for tag in tags:
@@ -157,3 +157,33 @@ def profile():
             for genre, count in top_tag_counts # genre_counts.most_common(10)
         ] if top_total > 0 else []
     return render_template("profile.html", top_artists=top_artists, top_tracks=top_tracks, top_genres=top_genres, recent_tracks=recent_tracks)
+
+@app.route("/search_albums")
+@login_required
+def search_albums():
+    query = request.args.get("q", "").strip()
+    if not query:
+        return {"results": []}
+    
+    lastfm_api_key = os.environ.get("LASTFM_API_KEY")
+    import requests as http_requests
+    response = http_requests.get("https://ws.audioscrobbler.com/2.0/", params={
+        "method": "album.search",
+        "album": query,
+        "api_key": lastfm_api_key,
+        "format": "json",
+        "limit": 8})
+    data = response.json()
+    albums_raw = data.get("results", {}).get("albummatches", {}).get("album", [])   # .get is used instead of brackets (results["..."]["..."]) to avoid KeyError if the keys don't exist
+                                                                                    # also, {} and [] are used as default fallbacks if the servers are down or there is any other problem
+    results = []
+    for album in albums_raw:
+        images = album.get("image", [])
+        cover = next((img["#text"] for img in reversed(images) if img["#text"]), None)  # Loops through all the images, from best to worst quality, until it finds one that exists
+        results.append({
+            "title": album.get("name"),
+            "artist": album.get("artist"),
+            "cover_url": cover,
+            "mbid": album.get("mbid", "")
+        })
+return {"results": results}

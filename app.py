@@ -187,3 +187,57 @@ def search_albums():
             "mbid": album.get("mbid", "")
         })
 return {"results": results}
+
+@app.route("/top-albums/add", methods=["POST"]")
+@login_required
+def add_top_album():
+    user_id = session["user_id"]
+    data = request.get_json()
+
+    conn = sqlite3.connect("musicphile.db")
+    c = conn.cursor()
+    count = c.execute(
+        "SELECT COUNT(*) FROM top_albums WHERE user_id = ?", (user_id,)
+    ).fetchone()[0]
+    if count >= 5:
+        conn.close()
+        return {"error": "You already have 5 albums. Remove one first."}, 400
+
+    next_position = count + 1
+    c.execute(
+        "INSERT INTO top_albums (user_id, position, title, artist, cover_url, mbid) VALUES (?, ?, ?, ?, ?, ?)",
+        (user_id, next_position, data["title"], data["artist"], data.get("cover_url"), data.get("mbid", ""))
+    )
+    conn.commit()
+    conn.close()
+    return {"success": True}
+
+@app.route("/top-albums/remove", methods=["POST"])
+@login_required
+def remove_top_album():
+    user_id = session["user_id"]
+    data = request.get_json()
+    album_id = data["id"]
+
+    conn = sqlite3.connect("musicphile.db")
+    c = conn.cursor()
+
+    # Get position of the album being removed
+    row = c.execute(
+        "SELECT position FROM top_albums WHERE id = ? AND user_id = ?", (album_id, user_id)
+    ).fetchone()
+
+    if not row:
+        conn.close()
+        return {"error": "Album not found"}, 404
+
+    removed_position = row[0]
+
+    # Delete it
+    c.execute("DELETE FROM top_albums WHERE id = ? AND user_id = ?", (album_id, user_id))
+
+    c.execute("UPDATE top_albums SET position = position - 1 WHERE user_id = ? AND position > ?", (user_id, removed_position))
+
+    conn.commit()
+    conn.close()
+    return {"success": True}

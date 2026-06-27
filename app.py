@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session
-from helpers import login_required, get_spotify_client
+from helpers import login_required, get_spotify_client, DBCacheHandler
 import os
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
@@ -28,7 +28,7 @@ def callback():
         client_secret = client_secret,
         redirect_uri = "http://127.0.0.1:5000/callback",
         scope = "user-library-read user-top-read user-follow-read user-read-recently-played",
-        cache_handler=spotipy.cache_handler.FlaskSessionCacheHandler(session)
+        cache_handler=DBCacheHandler(session["user_id"]),
     )
 
     code = request.args.get("code")
@@ -104,11 +104,10 @@ def connect_spotify():
         client_secret=client_secret,
         redirect_uri="http://127.0.0.1:5000/callback",
         scope="user-library-read user-top-read user-follow-read user-read-recently-played",
-        cache_handler=spotipy.cache_handler.FlaskSessionCacheHandler(session),
+        cache_handler=DBCacheHandler(session["user_id"]),
         show_dialog=True
     )
-    auth_url = auth_manager.get_authorize_url()
-    return redirect(auth_url)
+    return redirect(auth_manager.get_authorize_url())
 
 @app.route("/profile")
 @login_required

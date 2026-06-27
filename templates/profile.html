@@ -132,6 +132,7 @@
         if (count >= 5) {
             msg.textContent = "You have 5 albums. Remove one to add another.";
             searchInput.style.display = "none";
+            document.getElementById("search-results").innerHTML = "";
         } else {
             msg.textContent = `${count}/5 albums selected.`;
             searchInput.style.display = "block";

@@ -26,7 +26,7 @@ class DBCacheHandler(spotipy.cache_handler.CacheHandler):
     def save_token_to_cache(self, token_info):
         conn = sqlite3.connect("musicphile.db")
         c = conn.cursor()
-        row = c.execute("UPDATE TABLE users SET spotify_token = ? WHERE id = ?", (json.dumps(token_info), self.user_id))
+        c.execute("UPDATE users SET spotify_token = ? WHERE id = ?", (json.dumps(token_info), self.user_id))
         conn.commit()
         conn.close()
 

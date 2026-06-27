@@ -111,7 +111,7 @@
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 2500);
     }
-    
+
     function toggleEdit() {
         editMode = !editMode;
         document.getElementById("edit-btn").textContent = editMode ? "Done" : "Edit";
@@ -139,7 +139,7 @@
     }
 
     function updatePositionNumbers() {
-        document.querySelectorAll(".album.row").forEach((row, index) =>{
+        document.querySelectorAll(".album-row").forEach((row, index) => {
             row.querySelector(".album-position").textContent = `${index + 1}.`;
         });
     }
@@ -150,6 +150,7 @@
             document.getElementById("search-results").innerHTML = "";
             return;
         }
+        
         // Wait 400ms after user stops typing before calling the API
         searchTimeout = setTimeout(async () => {
             const res = await fetch(`/search-albums?q=${encodeURIComponent(query)}`);
@@ -182,31 +183,31 @@
         const data = await res.json();
         if (data.error) {
             alert(data.error);
-            return
+            return;
         }
 
-    const list = document.querySelector(".albums-list");
-    const emptyMsg = document.getElementById("empty-msg");
-    if (emptyMsg) emptyMsg.remove();
+        const list = document.querySelector(".albums-list");
+        const emptyMsg = document.getElementById("empty-msg");
+        if (emptyMsg) emptyMsg.remove();
 
-    const position = document.querySelectorAll(".album-row").length +1;
-    const row = document.createElement("div");
-    row.className = "album-row";
-    row.id = 'album-row-${data.id}';
-    row.innerHTML = `
-        ${album.cover_url ? `<img src="${album.cover_url}" alt="${album.title}" width="50" height="50">` : ""}
-        <span class="album-position">${position}.</span>
-        <span class="album-title">${album.title}</span>
-        <span class="album-artist">${album.artist}</span>
-        <div class="album-controls" style="display:inline;">
-            <button class="move-btn" data-id="${data.id}" data-dir="up">▲</button>
-            <button class="move-btn" data-id="${data.id}" data-dir="down">▼</button>
-            <button class="remove-btn" data-id="${data.id}">✕</button>
-        </div>
-    `;
-    list.appendChild(row);
-    updatecountMsg();
-    showToast(`"${album.title}" added!`);
+        const position = document.querySelectorAll(".album-row").length + 1;
+        const row = document.createElement("div");
+        row.className = "album-row";
+        row.id = `album-row-${data.id}`;
+        row.innerHTML = `
+            ${album.cover_url ? `<img src="${album.cover_url}" alt="${album.title}" width="50" height="50">` : ""}
+            <span class="album-position">${position}.</span>
+            <span class="album-title">${album.title}</span>
+            <span class="album-artist">${album.artist}</span>
+            <div class="album-controls" style="display:inline;">
+                <button class="move-btn" data-id="${data.id}" data-dir="up">▲</button>
+                <button class="move-btn" data-id="${data.id}" data-dir="down">▼</button>
+                <button class="remove-btn" data-id="${data.id}">✕</button>
+            </div>
+        `;
+        list.appendChild(row);
+        updateCountMsg();
+        showToast(`"${album.title}" added!`);
     }
 
     document.addEventListener("click", async function(e) {
@@ -218,14 +219,14 @@
                 body: JSON.stringify({id})
             });
             const data = await res.json();
-            if (data.error) {alert(data.error); return; }
+            if (data.error) { alert(data.error); return; }
 
-            const row = document.getElemenyById(`album-row-${id}`);
+            const row = document.getElementById(`album-row-${id}`);
             const title = row.querySelector(".album-title").textContent;
             row.remove();
             updatePositionNumbers();
             updateCountMsg();
-            
+
             if (document.querySelectorAll(".album-row").length === 0) {
                 document.querySelector(".albums-list").innerHTML = '<p id="empty-msg">No albums have been selected.</p>';
             }
@@ -238,19 +239,19 @@
             const res = await fetch("/top-albums/reorder", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                bosdy: JSON.stringify({id, direction})
+                body: JSON.stringify({id, direction})
             });
             const data = await res.json();
-            if (data.error) {return; }
-
-            const row = document.getElementById(`album-row-${id}`);
-            if (direction === "up" && row.previousElementSibling) {
-                row.previousElementSibling.before(row);
-            } else if (direction === "down" && row.nextElementSibling) {
-                row.nextElementSibling.after(row);
+            if (!data.error) {
+                const row = document.getElementById(`album-row-${id}`);
+                if (direction === "up" && row.previousElementSibling) {
+                    row.previousElementSibling.before(row);
+                } else if (direction === "down" && row.nextElementSibling) {
+                    row.nextElementSibling.after(row);
+                }
+                updatePositionNumbers();
+                showToast("Order updated.");
             }
-            updatePositionNumbers();
-            showToast("Order Updated.");
         }
     });
  </script>

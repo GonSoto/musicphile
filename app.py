@@ -217,8 +217,9 @@ def add_top_album():
         (user_id, next_position, data["title"], data["artist"], data.get("cover_url"), data.get("mbid", ""))
     )
     conn.commit()
+    new_id = c.lastrowid
     conn.close()
-    return {"success": True}
+    return {"success": True, "id": new_id}
 
 @app.route("/top-albums/remove", methods=["POST"])
 @login_required

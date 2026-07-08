@@ -165,6 +165,27 @@ p {
     align-self: center;
 }
 
+.time-range-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.time-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    text-decoration: none;
+    font-size: 13px;
+    color: inherit;
+}
+
+.time-btn.active {
+    background: #37c54f;
+    color: white;
+    border-color: #37c54f;
+}
+
 .track-details {
     flex-grow: 1;
     min-width: 0;

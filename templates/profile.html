@@ -68,6 +68,20 @@
        </div>
     </div>
     <div>
+        <div class="time-range-selector">
+            <a href="/profile?time_range=short_term" 
+            class="time-btn {% if time_range == 'short_term' %}active{% endif %}">
+                Last 4 weeks
+            </a>
+            <a href="/profile?time_range=medium_term" 
+            class="time-btn {% if time_range == 'medium_term' %}active{% endif %}">
+                Last 6 months
+            </a>
+            <a href="/profile?time_range=long_term" 
+            class="time-btn {% if time_range == 'long_term' %}active{% endif %}">
+                All time
+            </a>
+        </div>
         <h3>Top Artists by listening time</h3>
         <ul>
             {% for artist in top_artists %}

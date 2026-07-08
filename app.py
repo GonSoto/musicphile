@@ -116,10 +116,14 @@ def profile():
     if sp is None:
         return redirect("/spotify-login")
     
-    top_artists_result = sp.current_user_top_artists(limit=10, time_range="medium_term")
+    time_range = request.args.get("time_range", "short_term")
+    if time_range not in ("short_term", "medium_term", "long_term"):
+        time_range = "short_term"
+
+    top_artists_result = sp.current_user_top_artists(limit=10, time_range=time_range)
     top_artists = top_artists_result["items"]
-    
-    top_tracks_result = sp.current_user_top_tracks(limit=10, time_range="medium_term")
+
+    top_tracks_result = sp.current_user_top_tracks(limit=10, time_range=time_range)
     top_tracks = top_tracks_result["items"]
 
     recent_result = sp.current_user_recently_played(limit=5)
@@ -164,7 +168,7 @@ def profile():
 
     return render_template(
         "profile.html",
-        top_artists=top_artists, top_tracks=top_tracks, top_genres=top_genres, recent_tracks=recent_tracks, top_albums=top_albums)
+        top_artists=top_artists, top_tracks=top_tracks, top_genres=top_genres, recent_tracks=recent_tracks, top_albums=top_albums, time_range=time_range)
 
 @app.route("/search-albums")
 @login_required

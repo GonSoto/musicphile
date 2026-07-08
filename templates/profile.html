@@ -7,16 +7,54 @@
 {% block main %}
 <div class="welcome">
     <h1>Basic stats.</h1>
-    <div class="stats">
+    <div class="top-pick-section">
+        <div class="top-pick-header">
+            <h3>Top Artist Right Now</h3>
+            <button class="pick-edit-btn" onclick="togglePickEdit('artist')">Edit</button>
+        </div>
+        <div id="artist-pick-display">
+            {% if top_artist_pick %}
+                {% if top_artist_pick.image_url %}
+                    <img src="{{ top_artist_pick.image_url }}" width="50" height="50">
+                {% endif %}
+                <span id="artist-pick-name">{{ top_artist_pick.name }}</span>
+            {% else %}
+                <p id="artist-empty-msg">No artist selected.</p>
+            {% endif %}
+        </div>
+        <div id="artist-search-area" style="display:none;">
+            <input type="text" id="artist-search-input" placeholder="Search for an artist..." oninput="searchPick('artist', this.value)">
+            <div id="artist-search-results"></div>
+        </div>
+    </div>
 
+    <div class="top-pick-section">
+        <div class="top-pick-header">
+            <h3>Top Song Right Now</h3>
+            <button class="pick-edit-btn" onclick="togglePickEdit('track')">Edit</button>
+        </div>
+        <div id="track-pick-display">
+            {% if top_track_pick %}
+                {% if top_track_pick.cover_url %}
+                    <img src="{{ top_track_pick.cover_url }}" width="50" height="50">
+                {% endif %}
+                <span id="track-pick-name">{{ top_track_pick.title }}</span>
+                <span id="track-pick-artist"> — {{ top_track_pick.artist }}</span>
+            {% else %}
+                <p id="track-empty-msg">No track selected.</p>
+            {% endif %}
+        </div>
+        <div id="track-search-area" style="display:none;">
+            <input type="text" id="track-search-input" placeholder="Search for a track..." oninput="searchPick('track', this.value)">
+            <div id="track-search-results"></div>
+        </div>
+    </div>
+    <div class="stats">
         <div class="app-container">
-        
         <header class="profile-header">
             <h2 class="section-title">Recently Played</h2>
         </header>
-
         <div class="slider-wrapper">
-            
             {% for item in recent_tracks %}
             <div class="slider-card">
                 <div class="artwork-frame">
@@ -32,9 +70,9 @@
                 <p>No recent tracks found.</p>
             </div>
             {% endfor %}
-
         </div>
     </div>
+
     <div class="top-albums-section">
         <div class="top-albums-header">
             <h3>Top 5 albums</h3>
@@ -67,6 +105,7 @@
             <div id="search-results"></div>
        </div>
     </div>
+
     <div>
         <div class="time-range-selector">
             <a href="/profile?time_range=short_term" 
@@ -269,5 +308,80 @@
             }
         }
     });
+
+    let pickSearchTimeout = null;
+
+    function togglePickEdit(type) {
+        const searchArea = document.getElementById(`${type}-search-area`);
+        const isVisible = searchArea.style.display === "block";
+        searchArea.style.display = isVisible ? "none" : "block";
+        if (isVisible) {
+            // closing — clear results
+            document.getElementById(`${type}-search-results`).innerHTML = "";
+            document.getElementById(`${type}-search-input`).value = "";
+        }
+    }
+
+    function searchPick(type, query) {
+        clearTimeout(pickSearchTimeout);
+        if (query.length < 2) {
+            document.getElementById(`${type}-search-results`).innerHTML = "";
+            return;
+        }
+        pickSearchTimeout = setTimeout(async () => {
+            const endpoint = type === "artist" ? "/search-artists" : "/search-tracks";
+            const res = await fetch(`${endpoint}?q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            renderPickResults(type, data.results);
+        }, 400);
+    }
+
+    function renderPickResults(type, results) {
+        const container = document.getElementById(`${type}-search-results`);
+        if (!results.length) {
+            container.innerHTML = "<p>No results found.</p>";
+            return;
+        }
+        container.innerHTML = results.map(r => `
+            <div class="search-result-row">
+                ${(r.image_url || r.cover_url) ? `<img src="${r.image_url || r.cover_url}" width="40" height="40">` : ""}
+                <span>${type === "artist" ? r.name : `${r.title} — ${r.artist}`}</span>
+                <button onclick='setPick("${type}", ${JSON.stringify(r)})'>Select</button>
+            </div>
+        `).join("");
+    }
+
+    async function setPick(type, item) {
+        const endpoint = type === "artist" ? "/top-artist/set" : "/top-track/set";
+        const res = await fetch(endpoint, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(item)
+        });
+        const data = await res.json();
+        if (data.error) { alert(data.error); return; }
+
+        // Update the display in place — no reload needed
+        const display = document.getElementById(`${type}-pick-display`);
+        if (type === "artist") {
+            display.innerHTML = `
+                ${item.image_url ? `<img src="${item.image_url}" width="50" height="50">` : ""}
+                <span id="artist-pick-name">${item.name}</span>
+            `;
+            showToast(`Artist set to "${item.name}"!`);
+        } else {
+            display.innerHTML = `
+                ${item.cover_url ? `<img src="${item.cover_url}" width="50" height="50">` : ""}
+                <span id="track-pick-name">${item.title}</span>
+                <span id="track-pick-artist"> — ${item.artist}</span>
+            `;
+            showToast(`Track set to "${item.title}"!`);
+        }
+
+        // Close the search area
+        document.getElementById(`${type}-search-area`).style.display = "none";
+        document.getElementById(`${type}-search-results`).innerHTML = "";
+        document.getElementById(`${type}-search-input`).value = "";
+    }
  </script>
 {% endblock %}

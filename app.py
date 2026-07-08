@@ -163,12 +163,24 @@ def profile():
     conn = sqlite3.connect("musicphile.db")
     c = conn.cursor()
     rows = c.execute("SELECT id, position, title, artist, cover_url FROM top_albums WHERE user_id = ? ORDER BY position", (session["user_id"],)).fetchall()
-    conn.close()
     top_albums = [{"id": r[0], "position": r[1], "title": r[2], "artist": r[3], "cover_url": r[4]} for r in rows]
+
+    top_artist_row = c.execute(
+        "SELECT name, image_url FROM top_artist WHERE user_id = ?", (session["user_id"],)
+    ).fetchone()
+    top_track_row = c.execute(
+        "SELECT title, artist, cover_url FROM top_track WHERE user_id = ?", (session["user_id"],)
+    ).fetchone()
+
+    top_artist_pick = {"name": top_artist_row[0], "image_url": top_artist_row[1]} if top_artist_row else None
+    top_track_pick = {"title": top_track_row[0], "artist": top_track_row[1], "cover_url": top_track_row[2]} if top_track_row else None
+
+    conn.close()
 
     return render_template(
         "profile.html",
-        top_artists=top_artists, top_tracks=top_tracks, top_genres=top_genres, recent_tracks=recent_tracks, top_albums=top_albums, time_range=time_range)
+        top_artists=top_artists, top_tracks=top_tracks, top_genres=top_genres, recent_tracks=recent_tracks, top_albums=top_albums, time_range=time_range,
+        top_artist_pick=top_artist_pick, top_track_pick=top_track_pick)
 
 @app.route("/search-albums")
 @login_required
@@ -286,6 +298,113 @@ def reorder_top_album():
     c.execute("UPDATE top_albums SET position = ? WHERE id = ?", (swap_pos, album_id))
     c.execute("UPDATE top_albums SET position = ? WHERE id = ?", (current_pos, swap_album[0]))
 
+    conn.commit()
+    conn.close()
+    return {"success": True}
+
+
+@app.route("/search-artists")
+@login_required
+def search_artists():
+    query = request.args.get("q", "").strip()
+    if not query:
+        return {"results": []}
+
+    lastfm_api_key = os.environ.get("LASTFM_API_KEY")
+    import requests as http_requests
+    response = http_requests.get("https://ws.audioscrobbler.com/2.0/", params={
+        "method": "artist.search",
+        "artist": query,
+        "api_key": lastfm_api_key,
+        "format": "json",
+        "limit": 8
+    })
+    data = response.json()
+    artists_raw = data.get("results", {}).get("artistmatches", {}).get("artist", [])
+
+    results = []
+    for artist in artists_raw:
+        images = artist.get("image", [])
+        LASTFM_PLACEHOLDER = "2a96cbd8b46e442fc41c2b86b821562f.png"
+        image = next(
+            (img["#text"] for img in reversed(images) 
+            if img["#text"] and LASTFM_PLACEHOLDER not in img["#text"]),
+            None
+        )
+        results.append({
+            "name": artist.get("name"),
+            "image_url": image,
+            "mbid": artist.get("mbid", "")
+        })
+    return {"results": results}
+
+
+@app.route("/search-tracks")
+@login_required
+def search_tracks():
+    query = request.args.get("q", "").strip()
+    if not query:
+        return {"results": []}
+
+    lastfm_api_key = os.environ.get("LASTFM_API_KEY")
+    import requests as http_requests
+    response = http_requests.get("https://ws.audioscrobbler.com/2.0/", params={
+        "method": "track.search",
+        "track": query,
+        "api_key": lastfm_api_key,
+        "format": "json",
+        "limit": 8
+    })
+    data = response.json()
+    tracks_raw = data.get("results", {}).get("trackmatches", {}).get("track", [])
+
+    results = []
+    for track in tracks_raw:
+        images = track.get("image", [])
+        LASTFM_PLACEHOLDER = "2a96cbd8b46e442fc41c2b86b821562f.png"
+        cover = next(
+            (img["#text"] for img in reversed(images) 
+            if img["#text"] and LASTFM_PLACEHOLDER not in img["#text"]),
+            None
+        )
+        results.append({
+            "title": track.get("name"),
+            "artist": track.get("artist"),
+            "cover_url": cover,
+            "mbid": track.get("mbid", "")
+        })
+    return {"results": results}
+
+
+@app.route("/top-artist/set", methods=["POST"])
+@login_required
+def set_top_artist():
+    user_id = session["user_id"]
+    data = request.get_json()
+    conn = sqlite3.connect("musicphile.db")
+    c = conn.cursor()
+    c.execute("""
+        INSERT INTO top_artist (user_id, name, image_url, mbid)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(user_id) DO UPDATE SET name=excluded.name, image_url=excluded.image_url, mbid=excluded.mbid
+    """, (user_id, data["name"], data.get("image_url"), data.get("mbid", "")))
+    conn.commit()
+    conn.close()
+    return {"success": True}
+
+
+@app.route("/top-track/set", methods=["POST"])
+@login_required
+def set_top_track():
+    user_id = session["user_id"]
+    data = request.get_json()
+    conn = sqlite3.connect("musicphile.db")
+    c = conn.cursor()
+    c.execute("""
+        INSERT INTO top_track (user_id, title, artist, cover_url, mbid)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(user_id) DO UPDATE SET title=excluded.title, artist=excluded.artist, cover_url=excluded.cover_url, mbid=excluded.mbid
+    """, (user_id, data["title"], data["artist"], data.get("cover_url"), data.get("mbid", "")))
     conn.commit()
     conn.close()
     return {"success": True}

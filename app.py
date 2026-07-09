@@ -6,6 +6,8 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
+import requests as http_requests
+from collections import Counter
 
 load_dotenv()
 
@@ -14,6 +16,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 client_id = os.environ.get("CLIENT_ID")
 client_secret = os.environ.get("CLIENT_SECRET")
+LASTFM_PLACEHOLDER = "2a96cbd8b46e442fc41c2b86b821562f.png"
 
 @app.route("/")
 @login_required
@@ -151,14 +154,14 @@ def profile():
         except Exception:
             continue
 
-        genre_counts = Counter(all_genres) 
+    genre_counts = Counter(all_genres) 
 
-        top_tag_counts = genre_counts.most_common(10)
-        top_total = sum(count for _, count in top_tag_counts) # Takes each count of the main genres and sums them together
-        top_genres = [
-            {"name": genre, "percentage": round((count / top_total) * 100, 1)}
-            for genre, count in top_tag_counts
-        ] if top_total > 0 else []
+    top_tag_counts = genre_counts.most_common(10)
+    top_total = sum(count for _, count in top_tag_counts) # Takes each count of the main genres and sums them together
+    top_genres = [
+        {"name": genre, "percentage": round((count / top_total) * 100, 1)}
+        for genre, count in top_tag_counts
+    ] if top_total > 0 else []
 
     conn = sqlite3.connect("musicphile.db")
     c = conn.cursor()
@@ -325,7 +328,6 @@ def search_artists():
     results = []
     for artist in artists_raw:
         images = artist.get("image", [])
-        LASTFM_PLACEHOLDER = "2a96cbd8b46e442fc41c2b86b821562f.png"
         image = next(
             (img["#text"] for img in reversed(images) 
             if img["#text"] and LASTFM_PLACEHOLDER not in img["#text"]),
@@ -361,7 +363,6 @@ def search_tracks():
     results = []
     for track in tracks_raw:
         images = track.get("image", [])
-        LASTFM_PLACEHOLDER = "2a96cbd8b46e442fc41c2b86b821562f.png"
         cover = next(
             (img["#text"] for img in reversed(images) 
             if img["#text"] and LASTFM_PLACEHOLDER not in img["#text"]),

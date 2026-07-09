@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session
-from helpers import login_required, get_spotify_client, DBCacheHandler
+from helpers import login_required, get_spotify_client, lastfm_get, DBCacheHandler
 import os
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
@@ -132,22 +132,13 @@ def profile():
     recent_result = sp.current_user_recently_played(limit=5)
     recent_tracks = recent_result["items"]
     
-    import requests as http_requests
-    from collections import Counter
 
     lastfm_api_key = os.environ.get("LASTFM_API_KEY")
     all_genres = []
 
     for artist in top_artists:
         try:
-            response = http_requests.get("https://ws.audioscrobbler.com/2.0/", params={
-                "method": "artist.getTopTags",
-                "artist": artist["name"],
-                "api_key": lastfm_api_key,
-                "format": "json",
-                "limit": 5
-            })
-            data = response.json()
+            data = lastfm_get({"method": "album.search", "album": query, "limit": 8})
             tags = data.get("toptags", {}).get("tag", [])
             for tag in tags:
                 all_genres.append(tag["name"].lower())
@@ -193,14 +184,7 @@ def search_albums():
         return {"results": []}
     
     lastfm_api_key = os.environ.get("LASTFM_API_KEY")
-    import requests as http_requests
-    response = http_requests.get("https://ws.audioscrobbler.com/2.0/", params={
-        "method": "album.search",
-        "album": query,
-        "api_key": lastfm_api_key,
-        "format": "json",
-        "limit": 8})
-    data = response.json()
+    data = lastfm_get({"method": "album.search", "album": query, "limit": 8})
     albums_raw = data.get("results", {}).get("albummatches", {}).get("album", [])   # .get is used instead of brackets (results["..."]["..."]) to avoid KeyError if the keys don't exist
                                                                                     # also, {} and [] are used as default fallbacks if the servers are down or there is any other problem
     results = []
@@ -314,15 +298,7 @@ def search_artists():
         return {"results": []}
 
     lastfm_api_key = os.environ.get("LASTFM_API_KEY")
-    import requests as http_requests
-    response = http_requests.get("https://ws.audioscrobbler.com/2.0/", params={
-        "method": "artist.search",
-        "artist": query,
-        "api_key": lastfm_api_key,
-        "format": "json",
-        "limit": 8
-    })
-    data = response.json()
+    data = lastfm_get({"method": "album.search", "album": query, "limit": 8})
     artists_raw = data.get("results", {}).get("artistmatches", {}).get("artist", [])
 
     results = []
@@ -349,15 +325,7 @@ def search_tracks():
         return {"results": []}
 
     lastfm_api_key = os.environ.get("LASTFM_API_KEY")
-    import requests as http_requests
-    response = http_requests.get("https://ws.audioscrobbler.com/2.0/", params={
-        "method": "track.search",
-        "track": query,
-        "api_key": lastfm_api_key,
-        "format": "json",
-        "limit": 8
-    })
-    data = response.json()
+    data = lastfm_get({"method": "album.search", "album": query, "limit": 8})
     tracks_raw = data.get("results", {}).get("trackmatches", {}).get("track", [])
 
     results = []

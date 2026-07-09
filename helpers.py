@@ -10,6 +10,8 @@ import json
 
 load_dotenv()
 
+LASTFM_BASE = "https://ws.audioscrobbler.com/2.0/"
+
 class DBCacheHandler(spotipy.cache_handler.CacheHandler):
     def __init__(self, user_id):
         self.user_id = user_id
@@ -61,6 +63,15 @@ def get_spotify_client():
             raise
 
     return spotipy.Spotify(auth_manager=auth_manager)
+
+def lastfm_get(params):
+    all_params = {
+        "api_key": os.environ.get("LASTFM_API_KEY"),
+        "format": "json",
+        **params
+    }
+    response = requests.get(LASTFM_BASE, params=all_params)
+    return response.json()
 
 def login_required(f):
     """

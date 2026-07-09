@@ -2,8 +2,7 @@ from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session
 from helpers import login_required, get_spotify_client, lastfm_get, DBCacheHandler
 import os
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
+from spotipy.oauth2 import SpotifyOAuth
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
 import requests as http_requests
@@ -138,7 +137,7 @@ def profile():
 
     for artist in top_artists:
         try:
-            data = lastfm_get({"method": "album.search", "album": query, "limit": 8})
+            data = lastfm_get({"method": "artist.getTopTags", "artist": artist["name"], "limit": 5})
             tags = data.get("toptags", {}).get("tag", [])
             for tag in tags:
                 all_genres.append(tag["name"].lower())
@@ -183,7 +182,6 @@ def search_albums():
     if not query:
         return {"results": []}
     
-    lastfm_api_key = os.environ.get("LASTFM_API_KEY")
     data = lastfm_get({"method": "album.search", "album": query, "limit": 8})
     albums_raw = data.get("results", {}).get("albummatches", {}).get("album", [])   # .get is used instead of brackets (results["..."]["..."]) to avoid KeyError if the keys don't exist
                                                                                     # also, {} and [] are used as default fallbacks if the servers are down or there is any other problem
@@ -297,8 +295,7 @@ def search_artists():
     if not query:
         return {"results": []}
 
-    lastfm_api_key = os.environ.get("LASTFM_API_KEY")
-    data = lastfm_get({"method": "album.search", "album": query, "limit": 8})
+    data = lastfm_get({"method": "artist.search", "artist": query, "limit": 8})
     artists_raw = data.get("results", {}).get("artistmatches", {}).get("artist", [])
 
     results = []
@@ -325,7 +322,7 @@ def search_tracks():
         return {"results": []}
 
     lastfm_api_key = os.environ.get("LASTFM_API_KEY")
-    data = lastfm_get({"method": "album.search", "album": query, "limit": 8})
+    data = lastfm_get({"method": "track.search", "track": query, "limit": 8})
     tracks_raw = data.get("results", {}).get("trackmatches", {}).get("track", [])
 
     results = []

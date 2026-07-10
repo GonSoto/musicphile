@@ -1,17 +1,15 @@
 {% extends "layout.html" %}
 
-{% block title %}
-    Home
-{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block main %}
 <div class="home-wrapper">
-    <h1 id="main-title" class="glow">Musicphile,</h1>
-    <h2>the place to discover new music.</h2>
-    <h3>Musicphile is the place to dive deeper into your Spotify account. It lets you see statistics and insights about your listening habits..</h3>
+    <div class="home-content">
+        <h1 id="main-title" class="glow">Musicphile</h1>
+        <h2 class="home-subtitle">The place to discover new music.</h2>
+        <p class="home-desc">Dive deeper into your Spotify account. See statistics and insights about your listening habits.</p>
+        <a href="/spotify-login" class="primary-btn">Connect your Spotify account</a>
+        <a href="/logout" class="ghost-btn" style="margin-top: 8px;">Log out</a>
+    </div>
 </div>
-<div class="start-btn">
-    <button><a href="/spotify-login">Connect your Spotify account to visualize.</a></button>
-</div>
-<button class="btn btn-primary" type="submit"><a class="nav-link" href="/logout">Log Out</a></button>
 {% endblock %}

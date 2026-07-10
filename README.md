@@ -70,10 +70,12 @@ Stores each user's single manually chosen favourite track at the moment. Each us
 
 *MusicBrainz is an open-source community project that strives to create a massive music database. The mbid on `top_albums`, `top_artist` and `top_track` exists in case a music taste comparison feature was added in the future (MBID is more reliable than title strings, especially if the app was expanded to support apple music or other similar services).
 
-### Future Improvements
+## Future Improvements
 This app is currently single-user, and acts as a hub fore gathering listening data and storing preferences, but it has been thought of as a place to connect with people through music. For difficulty, time and monetary reasons, Musicphile isn't an online platform, but it could easily be made so, so **including a search feature** with filters, or a recommended section that tries to match you with people or community-created groups of similar music taste would be a wonderful addition.
 Another feature that could be added would be a timestamp column for the `top_artist`, `top_track` and `top_albums` to **see how your music favorites evolve over time**.
 Finally, I would also love if Musicphile had a **calendar of releases and concerts**, where you could go to if you wanted to see when your favorite artists are publishing new music or coming to your city.
 
-### Acknowledgements - AI Use
+## Acknowledgements - AI Use
 As stated before, AI (and specifically Claude) has been used as a companion and teacher to help me over difficult funtions, API-specific syntax, JSON formatting and other fields in which I had little knowledge, as well as with the tedious work of stlying all of the many `divs` and `classes`. Claude also served as a debugger and trouble-shooter, in most of the many times the app didn't want to work. Nevertheless, the idea and bulk of the work is entirely my own, and the code is still of a level of difficulty which I can understand.
+
+## How to run

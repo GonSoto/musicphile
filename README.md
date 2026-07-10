@@ -79,3 +79,55 @@ Finally, I would also love if Musicphile had a **calendar of releases and concer
 As stated before, AI (and specifically Claude) has been used as a companion and teacher to help me over difficult funtions, API-specific syntax, JSON formatting and other fields in which I had little knowledge, as well as with the tedious work of stlying all of the many `divs` and `classes`. Claude also served as a debugger and trouble-shooter, in most of the many times the app didn't want to work. Nevertheless, the idea and bulk of the work is entirely my own, and the code is still of a level of difficulty which I can understand.
 
 ## How to run
+### Requirements
+- Python 3.10 or higher
+- A [Spotify Developer](https://developer.spotify.com/dashboard) account with a registered app
+- A [Last.fm API](https://www.last.fm/api/account/create) key
+
+### Installation
+
+**1. Clone the repository**
+```bash
+git clone https://github.com/your-username/musicphile.git
+cd musicphile
+```
+or download it.
+
+**2. Create and activate a virtual environment**
+```bash
+python -m venv .venv
+```
+```bash
+# Windows
+.venv\Scripts\activate
+
+# macOS/Linux
+source .venv/bin/activate
+```
+
+**3. Install dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+**4. Set up environment variables**
+
+Create a `.env` file in the root of the project with the following:
+FLASK_SECRET_KEY=your_secret_key_here
+CLIENT_ID=your_spotify_client_id
+CLIENT_SECRET=your_spotify_client_secret
+LASTFM_API_KEY=your_lastfm_api_key
+
+Your Spotify `CLIENT_ID` and `CLIENT_SECRET` can be found in your app's settings on the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard). Make sure `http://127.0.0.1:5000/callback` is added as a Redirect URI in those same settings.
+
+**5. Initialise the database**
+```bash
+python init_db.py
+```
+
+**6. Run the app**
+```bash
+flask run
+```
+
+The app will be available at `http://127.0.0.1:5000`.

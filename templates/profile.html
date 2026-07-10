@@ -1,180 +1,250 @@
 {% extends "layout.html" %}
 
-{% block title %}
-    Home
-{% endblock %}
+{% block title %}Profile{% endblock %}
 
 {% block main %}
-<div class="welcome">
-    <h1>Basic stats.</h1>
-    <div class="top-pick-section">
-        <div class="top-pick-header">
-            <h3>Top Artist Right Now</h3>
-            <button class="pick-edit-btn" onclick="togglePickEdit('artist')">Edit</button>
+<div class="page-wrapper">
+
+    <!-- Page header -->
+    <h1 class="page-title">Profile</h1>
+
+    <!-- Identity tile -->
+    <div class="tile identity-tile">
+        <div class="identity-info">
+            <h2 class="identity-name">{{ username }}</h2>
+            <div class="identity-picks">
+                <span id="artist-pick-name">
+                    {% if top_artist_pick %}🎤 {{ top_artist_pick.name }}{% else %}No artist selected{% endif %}
+                </span>
+                <span class="identity-separator">·</span>
+                <span id="track-pick-name">
+                    {% if top_track_pick %}🎵 {{ top_track_pick.title }} — {{ top_track_pick.artist }}{% else %}No track selected{% endif %}
+                </span>
+            </div>
         </div>
-        <div id="artist-pick-display">
-            {% if top_artist_pick %}
-                {% if top_artist_pick.image_url %}
-                    <img src="{{ top_artist_pick.image_url }}" width="50" height="50">
-                {% endif %}
-                <span id="artist-pick-name">{{ top_artist_pick.name }}</span>
-            {% else %}
-                <p id="artist-empty-msg">No artist selected.</p>
-            {% endif %}
+        <button class="edit-pick-btn" onclick="togglePickEdit()">Edit</button>
+    </div>
+
+    <!-- Pick edit panel — hidden until Edit is clicked -->
+    <div id="pick-edit-panel" class="tile pick-edit-panel" style="display:none;">
+        <div class="pick-edit-col">
+            <p class="pick-edit-label">Top Artist</p>
+            <input type="text" id="artist-search-input" class="search-input" placeholder="Search for an artist..." oninput="searchPick('artist', this.value)">
+            <div id="artist-search-results" class="search-results"></div>
         </div>
-        <div id="artist-search-area" style="display:none;">
-            <input type="text" id="artist-search-input" placeholder="Search for an artist..." oninput="searchPick('artist', this.value)">
-            <div id="artist-search-results"></div>
+        <div class="pick-edit-col">
+            <p class="pick-edit-label">Top Track</p>
+            <input type="text" id="track-search-input" class="search-input" placeholder="Search for a track..." oninput="searchPick('track', this.value)">
+            <div id="track-search-results" class="search-results"></div>
         </div>
     </div>
 
-    <div class="top-pick-section">
-        <div class="top-pick-header">
-            <h3>Top Song Right Now</h3>
-            <button class="pick-edit-btn" onclick="togglePickEdit('track')">Edit</button>
-        </div>
-        <div id="track-pick-display">
-            {% if top_track_pick %}
-                {% if top_track_pick.cover_url %}
-                    <img src="{{ top_track_pick.cover_url }}" width="50" height="50">
-                {% endif %}
-                <span id="track-pick-name">{{ top_track_pick.title }}</span>
-                <span id="track-pick-artist"> — {{ top_track_pick.artist }}</span>
-            {% else %}
-                <p id="track-empty-msg">No track selected.</p>
-            {% endif %}
-        </div>
-        <div id="track-search-area" style="display:none;">
-            <input type="text" id="track-search-input" placeholder="Search for a track..." oninput="searchPick('track', this.value)">
-            <div id="track-search-results"></div>
-        </div>
-    </div>
-    <div class="stats">
-        <div class="app-container">
-        <header class="profile-header">
-            <h2 class="section-title">Recently Played</h2>
-        </header>
-        <div class="slider-wrapper">
+    <!-- Recently played -->
+    <div class="tile recently-played-tile">
+        <h2 class="tile-title">Recently Played</h2>
+        <div class="slider-wrapper" id="slider">
             {% for item in recent_tracks %}
             <div class="slider-card">
                 <div class="artwork-frame">
-                    <img src="{{ item.track.album.images[0].url }}" alt="{{ item.track.name }} Album Art">
+                    <img src="{{ item.track.album.images[0].url }}" alt="{{ item.track.name }}">
                 </div>
                 <div class="track-details">
                     <h3 class="track-name" title="{{ item.track.name }}">{{ item.track.name }}</h3>
                     <p class="artist-name" title="{{ item.track.artists[0].name }}">{{ item.track.artists[0].name }}</p>
-                </div> 
+                </div>
             </div>
             {% else %}
-            <div class="empty-state">
-                <p>No recent tracks found.</p>
-            </div>
+            <div class="empty-state"><p>No recent tracks found.</p></div>
             {% endfor %}
         </div>
     </div>
 
-    <div class="top-albums-section">
-        <div class="top-albums-header">
-            <h3>Top 5 albums</h3>
-            <button id="edit-btn" onclick="toggleEdit()">Edit</button> <!-- Claude's idea to use JS instead of another template-->
+    <!-- Top 5 albums -->
+    <div class="tile albums-tile">
+        <div class="tile-header">
+            <h2 class="tile-title">Top 5 Albums</h2>
+            <button id="edit-btn" class="ghost-btn" onclick="toggleEdit()">Edit</button>
         </div>
         <div class="albums-list">
             {% if top_albums %}
                 {% for album in top_albums %}
                 <div class="album-row" id="album-row-{{ album.id }}">
                     {% if album.cover_url %}
-                    <img src="{{ album.cover_url }}" alt="{{ album.title }}" width="50" height="50">
+                    <img src="{{ album.cover_url }}" alt="{{ album.title }}" class="album-thumb">
                     {% endif %}
                     <span class="album-position">{{ album.position }}.</span>
-                    <span class="album-title">{{ album.title }}</span>
-                    <span class="album-artist">{{ album.artist }}</span>
+                    <div class="album-info">
+                        <span class="album-title">{{ album.title }}</span>
+                        <span class="album-artist">{{ album.artist }}</span>
+                    </div>
                     <div class="album-controls" style="display:none;">
-                        <button class="move-btn" data-id="{{ album.id }}" data-dir="up">▲</button>
-                        <button class="move-btn" data-id="{{ album.id }}" data-dir="down">▼</button>
-                        <button class="remove-btn" data-id="{{ album.id }}">✕</button>
+                        <button class="move-btn icon-btn" data-id="{{ album.id }}" data-dir="up">▲</button>
+                        <button class="move-btn icon-btn" data-id="{{ album.id }}" data-dir="down">▼</button>
+                        <button class="remove-btn icon-btn" data-id="{{ album.id }}">✕</button>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <p id="empty-msg">No albums have been selected.</p>
+                <p id="empty-msg" class="muted">No albums have been selected.</p>
             {% endif %}
         </div>
         <div id="search-area" style="display:none;">
-            <div id="album-count-msg"></div>
-            <input type="text" id="album-search" placeholder="Search for an album..." oninput="searchAlbums(this.value)">
-            <div id="search-results"></div>
-       </div>
-    </div>
-
-    <div>
-        <div class="time-range-selector">
-            <a href="/profile?time_range=short_term" 
-            class="time-btn {% if time_range == 'short_term' %}active{% endif %}">
-                Last 4 weeks
-            </a>
-            <a href="/profile?time_range=medium_term" 
-            class="time-btn {% if time_range == 'medium_term' %}active{% endif %}">
-                Last 6 months
-            </a>
-            <a href="/profile?time_range=long_term" 
-            class="time-btn {% if time_range == 'long_term' %}active{% endif %}">
-                All time
-            </a>
+            <div id="album-count-msg" class="muted small"></div>
+            <input type="text" id="album-search" class="search-input" placeholder="Search for an album..." oninput="searchAlbums(this.value)">
+            <div id="search-results" class="search-results"></div>
         </div>
-        <h3>Top Artists by listening time</h3>
-        <ul>
-            {% for artist in top_artists %}
-            <li>{{ artist.name }}</li>
-            {% endfor %}
-        </ul>
-        <h3>Top Tracks by listens</h3>
-        <ul>
-            {% for track in top_tracks %}
-            <li>{{ track.name }}</li>
-            {% endfor %}
-        </ul>
-        <h3>Top Genres by percentage</h3>
-        <ul>
-            {% for genre in top_genres %}
-            <li>{{ genre.name }} ({{ genre.percentage }}%)</li>
-            {% endfor %}
-        </ul>
     </div>
-</div>
-<button class="btn btn-primary" type="submit"><a class="nav-link" href="/logout">Log Out</a></button>
 
-<!-- Script for slider for recently played -->
+    <!-- Stats section -->
+    <div class="stats-section">
+        <div class="stats-header">
+            <h2 class="tile-title">Your Stats</h2>
+            <div class="time-range-selector">
+                <a href="/profile?time_range=short_term" class="time-btn {% if time_range == 'short_term' %}active{% endif %}">Last 4 weeks</a>
+                <a href="/profile?time_range=medium_term" class="time-btn {% if time_range == 'medium_term' %}active{% endif %}">Last 6 months</a>
+                <a href="/profile?time_range=long_term" class="time-btn {% if time_range == 'long_term' %}active{% endif %}">All time</a>
+            </div>
+        </div>
+        <div class="stats-grid">
+            <div class="tile stat-tile">
+                <h3 class="stat-tile-title">Top Artists</h3>
+                <ol class="stat-list">
+                    {% for artist in top_artists %}
+                    <li>{{ artist.name }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+            <div class="tile stat-tile">
+                <h3 class="stat-tile-title">Top Tracks</h3>
+                <ol class="stat-list">
+                    {% for track in top_tracks %}
+                    <li>
+                        <div class="stat-track-row">
+                            <span class="stat-primary">{{ track.name }}</span>
+                            <span class="stat-secondary">{{ track.artists[0].name }}</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ol>
+            </div>
+            <div class="tile stat-tile">
+                <h3 class="stat-tile-title">Top Genres</h3>
+                <ol class="stat-list">
+                    {% for genre in top_genres %}
+                    <li>
+                        <div class="genre-item-content">
+                            <span class="stat-primary">{{ genre.name }}</span>
+                            <div class="genre-bar-wrap">
+                                <div class="genre-bar" style="width: {{ genre.percentage | string }}%"></div>
+                                <span class="stat-secondary genre-pct">{{ genre.percentage }}%</span>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <button class="ghost-btn logout-btn" onclick="window.location.href='/logout'">Log out</button>
+
+</div>
+
+<!-- Slider script -->
 <script>
     const slider = document.getElementById('slider');
-    slider.addEventListener('wheel', (evt) => {
-        evt.preventDefault();
-        slider.scrollLeft += evt.deltaY;
-    });
-</script> 
+    if (slider) {
+        slider.addEventListener('wheel', (evt) => {
+            evt.preventDefault();
+            slider.scrollLeft += evt.deltaY;
+        });
+    }
+</script>
 
-<!-- Script for top 5 albums -->
- <script>
+<!-- Main script -->
+<script>
     let editMode = false;
     let searchTimeout = null;
+    let pickSearchTimeout = null;
+    let pickEditOpen = false;
 
     function showToast(message) {
         const toast = document.createElement("div");
         toast.textContent = message;
-        toast.style.cssText = "position:fixed;bottom:20px;right:20px;background:#1DB954;color:white;padding:10px 16px;border-radius:8px;font-size:14px;z-index:999;";
+        toast.style.cssText = "position:fixed;bottom:20px;right:20px;background:#37c54f;color:white;padding:10px 16px;border-radius:8px;font-size:14px;font-family:Inter,sans-serif;z-index:999;";
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 2500);
     }
 
+    // --- Pick edit (artist / track) ---
+    function togglePickEdit() {
+        pickEditOpen = !pickEditOpen;
+        const panel = document.getElementById("pick-edit-panel");
+        panel.style.display = pickEditOpen ? "grid" : "none";
+        document.querySelector(".edit-pick-btn").textContent = pickEditOpen ? "Done" : "Edit";
+        if (!pickEditOpen) {
+            ["artist", "track"].forEach(type => {
+                document.getElementById(`${type}-search-results`).innerHTML = "";
+                document.getElementById(`${type}-search-input`).value = "";
+            });
+        }
+    }
+
+    function searchPick(type, query) {
+        clearTimeout(pickSearchTimeout);
+        if (query.length < 2) {
+            document.getElementById(`${type}-search-results`).innerHTML = "";
+            return;
+        }
+        pickSearchTimeout = setTimeout(async () => {
+            const endpoint = type === "artist" ? "/search-artists" : "/search-tracks";
+            const res = await fetch(`${endpoint}?q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            renderPickResults(type, data.results);
+        }, 400);
+    }
+
+    function renderPickResults(type, results) {
+        const container = document.getElementById(`${type}-search-results`);
+        if (!results.length) { container.innerHTML = "<p class='muted small'>No results found.</p>"; return; }
+        container.innerHTML = results.map(r => `
+            <div class="search-result-row">
+                ${(r.image_url || r.cover_url) ? `<img src="${r.image_url || r.cover_url}" width="36" height="36" style="border-radius:4px;">` : ""}
+                <span class="result-label">${type === "artist" ? r.name : `${r.title} — ${r.artist}`}</span>
+                <button class="ghost-btn small-btn" onclick='setPick("${type}", ${JSON.stringify(r)})'>Select</button>
+            </div>
+        `).join("");
+    }
+
+    async function setPick(type, item) {
+        const endpoint = type === "artist" ? "/top-artist/set" : "/top-track/set";
+        const res = await fetch(endpoint, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(item)
+        });
+        const data = await res.json();
+        if (data.error) { alert(data.error); return; }
+
+        if (type === "artist") {
+            document.getElementById("artist-pick-name").textContent = `🎤 ${item.name}`;
+            showToast(`Artist set to "${item.name}"!`);
+        } else {
+            document.getElementById("track-pick-name").textContent = `🎵 ${item.title} — ${item.artist}`;
+            showToast(`Track set to "${item.title}"!`);
+        }
+        document.getElementById(`${type}-search-results`).innerHTML = "";
+        document.getElementById(`${type}-search-input`).value = "";
+    }
+
+    // --- Top 5 albums ---
     function toggleEdit() {
         editMode = !editMode;
         document.getElementById("edit-btn").textContent = editMode ? "Done" : "Edit";
         document.getElementById("search-area").style.display = editMode ? "block" : "none";
-
-        // Show/hide controls on each album row
         document.querySelectorAll(".album-controls").forEach(el => {
-            el.style.display = editMode ? "inline" : "none";
+            el.style.display = editMode ? "flex" : "none";
         });
-
         if (editMode) updateCountMsg();
     }
 
@@ -200,30 +270,22 @@
 
     function searchAlbums(query) {
         clearTimeout(searchTimeout);
-        if (query.length < 2) {
-            document.getElementById("search-results").innerHTML = "";
-            return;
-        }
-        
-        // Wait 400ms after user stops typing before calling the API
+        if (query.length < 2) { document.getElementById("search-results").innerHTML = ""; return; }
         searchTimeout = setTimeout(async () => {
             const res = await fetch(`/search-albums?q=${encodeURIComponent(query)}`);
             const data = await res.json();
-            renderResults(data.results);
+            renderAlbumResults(data.results);
         }, 400);
     }
 
-    function renderResults(results) {
+    function renderAlbumResults(results) {
         const container = document.getElementById("search-results");
-        if (!results.length) {
-            container.innerHTML = "<p>No results found.</p>";
-            return;
-        }
+        if (!results.length) { container.innerHTML = "<p class='muted small'>No results found.</p>"; return; }
         container.innerHTML = results.map(r => `
             <div class="search-result-row">
-                ${r.cover_url ? `<img src="${r.cover_url}" width="40" height="40">` : ""}
-                <span>${r.title} — ${r.artist}</span>
-                <button onclick='addAlbum(${JSON.stringify(r)})'>Add</button>
+                ${r.cover_url ? `<img src="${r.cover_url}" width="36" height="36" style="border-radius:4px;">` : ""}
+                <span class="result-label">${r.title} — ${r.artist}</span>
+                <button class="ghost-btn small-btn" onclick='addAlbum(${JSON.stringify(r)})'>Add</button>
             </div>
         `).join("");
     }
@@ -235,10 +297,7 @@
             body: JSON.stringify(album)
         });
         const data = await res.json();
-        if (data.error) {
-            alert(data.error);
-            return;
-        }
+        if (data.error) { alert(data.error); return; }
 
         const list = document.querySelector(".albums-list");
         const emptyMsg = document.getElementById("empty-msg");
@@ -249,14 +308,16 @@
         row.className = "album-row";
         row.id = `album-row-${data.id}`;
         row.innerHTML = `
-            ${album.cover_url ? `<img src="${album.cover_url}" alt="${album.title}" width="50" height="50">` : ""}
+            ${album.cover_url ? `<img src="${album.cover_url}" alt="${album.title}" class="album-thumb">` : ""}
             <span class="album-position">${position}.</span>
-            <span class="album-title">${album.title}</span>
-            <span class="album-artist">${album.artist}</span>
-            <div class="album-controls" style="display:inline;">
-                <button class="move-btn" data-id="${data.id}" data-dir="up">▲</button>
-                <button class="move-btn" data-id="${data.id}" data-dir="down">▼</button>
-                <button class="remove-btn" data-id="${data.id}">✕</button>
+            <div class="album-info">
+                <span class="album-title">${album.title}</span>
+                <span class="album-artist">${album.artist}</span>
+            </div>
+            <div class="album-controls" style="display:flex;">
+                <button class="move-btn icon-btn" data-id="${data.id}" data-dir="up">▲</button>
+                <button class="move-btn icon-btn" data-id="${data.id}" data-dir="down">▼</button>
+                <button class="remove-btn icon-btn" data-id="${data.id}">✕</button>
             </div>
         `;
         list.appendChild(row);
@@ -274,15 +335,13 @@
             });
             const data = await res.json();
             if (data.error) { alert(data.error); return; }
-
             const row = document.getElementById(`album-row-${id}`);
             const title = row.querySelector(".album-title").textContent;
             row.remove();
             updatePositionNumbers();
             updateCountMsg();
-
             if (document.querySelectorAll(".album-row").length === 0) {
-                document.querySelector(".albums-list").innerHTML = '<p id="empty-msg">No albums have been selected.</p>';
+                document.querySelector(".albums-list").innerHTML = '<p id="empty-msg" class="muted">No albums have been selected.</p>';
             }
             showToast(`"${title}" removed.`);
         }
@@ -308,80 +367,5 @@
             }
         }
     });
-
-    let pickSearchTimeout = null;
-
-    function togglePickEdit(type) {
-        const searchArea = document.getElementById(`${type}-search-area`);
-        const isVisible = searchArea.style.display === "block";
-        searchArea.style.display = isVisible ? "none" : "block";
-        if (isVisible) {
-            // closing — clear results
-            document.getElementById(`${type}-search-results`).innerHTML = "";
-            document.getElementById(`${type}-search-input`).value = "";
-        }
-    }
-
-    function searchPick(type, query) {
-        clearTimeout(pickSearchTimeout);
-        if (query.length < 2) {
-            document.getElementById(`${type}-search-results`).innerHTML = "";
-            return;
-        }
-        pickSearchTimeout = setTimeout(async () => {
-            const endpoint = type === "artist" ? "/search-artists" : "/search-tracks";
-            const res = await fetch(`${endpoint}?q=${encodeURIComponent(query)}`);
-            const data = await res.json();
-            renderPickResults(type, data.results);
-        }, 400);
-    }
-
-    function renderPickResults(type, results) {
-        const container = document.getElementById(`${type}-search-results`);
-        if (!results.length) {
-            container.innerHTML = "<p>No results found.</p>";
-            return;
-        }
-        container.innerHTML = results.map(r => `
-            <div class="search-result-row">
-                ${(r.image_url || r.cover_url) ? `<img src="${r.image_url || r.cover_url}" width="40" height="40">` : ""}
-                <span>${type === "artist" ? r.name : `${r.title} — ${r.artist}`}</span>
-                <button onclick='setPick("${type}", ${JSON.stringify(r)})'>Select</button>
-            </div>
-        `).join("");
-    }
-
-    async function setPick(type, item) {
-        const endpoint = type === "artist" ? "/top-artist/set" : "/top-track/set";
-        const res = await fetch(endpoint, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(item)
-        });
-        const data = await res.json();
-        if (data.error) { alert(data.error); return; }
-
-        // Update the display in place — no reload needed
-        const display = document.getElementById(`${type}-pick-display`);
-        if (type === "artist") {
-            display.innerHTML = `
-                ${item.image_url ? `<img src="${item.image_url}" width="50" height="50">` : ""}
-                <span id="artist-pick-name">${item.name}</span>
-            `;
-            showToast(`Artist set to "${item.name}"!`);
-        } else {
-            display.innerHTML = `
-                ${item.cover_url ? `<img src="${item.cover_url}" width="50" height="50">` : ""}
-                <span id="track-pick-name">${item.title}</span>
-                <span id="track-pick-artist"> — ${item.artist}</span>
-            `;
-            showToast(`Track set to "${item.title}"!`);
-        }
-
-        // Close the search area
-        document.getElementById(`${type}-search-area`).style.display = "none";
-        document.getElementById(`${type}-search-results`).innerHTML = "";
-        document.getElementById(`${type}-search-input`).value = "";
-    }
- </script>
+</script>
 {% endblock %}

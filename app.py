@@ -155,6 +155,7 @@ def profile():
 
     conn = sqlite3.connect("musicphile.db")
     c = conn.cursor()
+
     rows = c.execute("SELECT id, position, title, artist, cover_url FROM top_albums WHERE user_id = ? ORDER BY position", (session["user_id"],)).fetchall()
     top_albums = [{"id": r[0], "position": r[1], "title": r[2], "artist": r[3], "cover_url": r[4]} for r in rows]
 
@@ -165,6 +166,11 @@ def profile():
         "SELECT title, artist, cover_url FROM top_track WHERE user_id = ?", (session["user_id"],)
     ).fetchone()
 
+    username_row = c.execute(
+        "SELECT username FROM users WHERE id = ?", (session["user_id"],)
+    ).fetchone()
+    username = username_row[0] if username_row else "User"
+
     top_artist_pick = {"name": top_artist_row[0], "image_url": top_artist_row[1]} if top_artist_row else None
     top_track_pick = {"title": top_track_row[0], "artist": top_track_row[1], "cover_url": top_track_row[2]} if top_track_row else None
 
@@ -173,7 +179,7 @@ def profile():
     return render_template(
         "profile.html",
         top_artists=top_artists, top_tracks=top_tracks, top_genres=top_genres, recent_tracks=recent_tracks, top_albums=top_albums, time_range=time_range,
-        top_artist_pick=top_artist_pick, top_track_pick=top_track_pick)
+        top_artist_pick=top_artist_pick, top_track_pick=top_track_pick, username=username)
 
 @app.route("/search-albums")
 @login_required

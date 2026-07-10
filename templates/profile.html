@@ -135,7 +135,7 @@
                         <div class="genre-item-content">
                             <span class="stat-primary">{{ genre.name }}</span>
                             <div class="genre-bar-wrap">
-                                <div class="genre-bar" style="width: {{ genre.percentage | string }}%"></div>
+                                <div class="genre-bar" style="--bar-width: {{ genre.percentage | string }}%"></div>
                                 <span class="stat-secondary genre-pct">{{ genre.percentage }}%</span>
                             </div>
                         </div>

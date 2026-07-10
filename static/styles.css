@@ -305,6 +305,7 @@ ol, ul { padding-left: 0; list-style: none; }
 }
 
 .genre-bar {
+    width: var(--bar-width);
     height: 3px;
     background-color: #37c54f;
     border-radius: 2px;

@@ -11,6 +11,7 @@ I came up with the idea for this app when I noticed that most of my friends don'
 ## Project Overview
 ### How it works
 The app is a Python, Flask, SQLite and Jinja mix that works alongside the aforementioned APIs. Right now it works as a single-user information hub, but it is thought as and prepared to be improved to a social network that revolves around music.
+
 #### Login and Register
 Any new user has to sign up to the app and create and account by choosing a name and password *(as in the CS50 Finance Project)*, when you log in for the first time, you have to also connect your account with the Spotify API, so that Musicphile can retrieve your listening information. When this is finished, you finally access the profile page. This pages look nearly identical, and store the information on a SQLite database. This database is explained further below.
 
@@ -72,7 +73,9 @@ Stores each user's single manually chosen favourite track at the moment. Each us
 
 ## Future Improvements
 This app is currently single-user, and acts as a hub fore gathering listening data and storing preferences, but it has been thought of as a place to connect with people through music. For difficulty, time and monetary reasons, Musicphile isn't an online platform, but it could easily be made so, so **including a search feature** with filters, or a recommended section that tries to match you with people or community-created groups of similar music taste would be a wonderful addition.
+
 Another feature that could be added would be a timestamp column for the `top_artist`, `top_track` and `top_albums` to **see how your music favorites evolve over time**.
+
 Finally, I would also love if Musicphile had a **calendar of releases and concerts**, where you could go to if you wanted to see when your favorite artists are publishing new music or coming to your city.
 
 ## Acknowledgements - AI Use

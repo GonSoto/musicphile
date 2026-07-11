@@ -87,3 +87,13 @@ def login_required(f):
         return f(*args, **kwargs)
 
     return decorated_function
+
+def username_exists(username):
+    if not username:
+        return False
+
+    conn = sqlite3.connect("musicphile.db")
+    c = conn.cursor()
+    row = c.execute("SELECT 1 FROM users WHERE username = ? LIMIT 1", (username,)).fetchone()
+    conn.close()
+    return row is not None

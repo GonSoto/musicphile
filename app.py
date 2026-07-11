@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session
-from helpers import login_required, get_spotify_client, lastfm_get, DBCacheHandler
+from helpers import login_required, get_spotify_client, lastfm_get, DBCacheHandler, username_exists
 import os
 from spotipy.oauth2 import SpotifyOAuth
 import sqlite3
@@ -16,6 +16,7 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 client_id = os.environ.get("CLIENT_ID")
 client_secret = os.environ.get("CLIENT_SECRET")
 LASTFM_PLACEHOLDER = "2a96cbd8b46e442fc41c2b86b821562f.png"
+
 
 @app.route("/")
 @login_required
@@ -86,11 +87,15 @@ def register():
         elif password != confirmation:
             return render_template("register.html", error="passwords do not match")
         else:
+            username = user.strip()
+            if username_exists(username):
+                return render_template("register.html", error="username already exists")
+
             hash = generate_password_hash(password)
             conn = sqlite3.connect("musicphile.db")
             c = conn.cursor()
             try:
-                c.execute("INSERT INTO users (username, hash) VALUES (?, ?)", (user, hash))
+                c.execute("INSERT INTO users (username, hash) VALUES (?, ?)", (username, hash))
                 conn.commit()
                 return render_template("login.html", success="account created successfully, please log in")
             except sqlite3.IntegrityError:

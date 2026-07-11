@@ -1,6 +1,6 @@
 # Musicphile
 
-#### Video Demo: 
+#### Video Demo: [Musicphile | CS50x 2026 Final Project](https://www.youtube.com/watch?v=Yr3ZCOoy1xs)
 #### Description:
 Musicphile is a hub that recollects both your Spotify stats and your manually selected music tastes and preferences. It is thought as a beggining of an application that would let you show your music taste to the world, as well as find and interact with people with the same music taste as you.
 

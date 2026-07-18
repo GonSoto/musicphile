@@ -81,6 +81,12 @@ Finally, I would also love if Musicphile had a **calendar of releases and concer
 ## Acknowledgements - AI Use
 As stated before, AI (and specifically Claude) has been used as a companion and teacher to help me over difficult funtions, API-specific syntax, JSON formatting and other fields in which I had little knowledge, as well as with the tedious work of stlying all of the many `divs` and `classes`. Claude also served as a debugger and trouble-shooter, in most of the many times the app didn't want to work. Nevertheless, the idea and bulk of the work is entirely my own, and the code is still of a level of difficulty which I can understand.
 
+## Links
+[Official Spotify API](https://developer.spotify.com/documentation/web-api)
+[LastFM API](https://www.last.fm/api/accounts?suspend=1)
+[Spotipy Docs](https://spotipy.readthedocs.io/en/2.26.0/)
+[Spotipy Tutorial](https://github.com/spotipy-dev/spotipy/blob/2.22.1/TUTORIAL.md)
+
 ## How to run
 ### Requirements
 - Python 3.10 or higher
@@ -133,4 +139,4 @@ python init_db.py
 flask run
 ```
 
-The app will be available at `http://127.0.0.1:5000`.
+The app will be available locally.
